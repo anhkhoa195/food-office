@@ -1,0 +1,144 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  name      String?
+  email     String?  @unique
+  role      UserRole @default(USER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+  orders    Order[]
+  sessions  OrderSession[]
+
+  @@map("users")
+}
+
+model Company {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users       User[]
+  orderSessions OrderSession[]
+  menuItems   MenuItem[]
+
+  @@map("companies")
+}
+
+model MenuItem {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  category    String
+  imageUrl    String?
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+  orderItems OrderItem[]
+
+  @@map("menu_items")
+}
+
+model OrderSession {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  startTime   DateTime
+  endTime     DateTime
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id])
+  orders     Order[]
+
+  @@map("order_sessions")
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  status      OrderStatus @default(PENDING)
+  totalAmount Decimal     @db.Decimal(10, 2)
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  sessionId     String
+  session       OrderSession @relation(fields: [sessionId], references: [id])
+  orderItems    OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id       String @id @default(cuid())
+  quantity Int
+  price    Decimal @db.Decimal(10, 2)
+  notes    String?
+
+  // Relations
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+
+  @@map("order_items")
+}
+
+model OtpCode {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("otp_codes")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  DELIVERED
+  CANCELLED
+}

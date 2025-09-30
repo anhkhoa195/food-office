@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: officefood_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: officefood_db
+      POSTGRES_USER: officefood
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/prisma/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - officefood_network
+
+  # PGAdmin (Optional - for database management)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: officefood_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@officefood.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - officefood_network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: officefood_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://officefood:password@postgres:5432/officefood_db
+      JWT_SECRET: your-super-secret-jwt-key-change-this-in-production
+      JWT_EXPIRES_IN: 7d
+      OTP_EXPIRES_IN: 300
+      MOCK_OTP_CODE: 123456
+      PORT: 3001
+      NODE_ENV: production
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+    volumes:
+      - ./backend/uploads:/app/uploads
+    networks:
+      - officefood_network
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: officefood_frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:3001/api/v1
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - officefood_network
+
+volumes:
+  postgres_data:
+
+networks:
+  officefood_network:
+    driver: bridge

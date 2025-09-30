@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: officefood_postgres_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: officefood_db
+      POSTGRES_USER: officefood
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    networks:
+      - officefood_network
+
+  # PGAdmin (Optional - for database management)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: officefood_pgadmin_dev
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@officefood.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - officefood_network
+
+volumes:
+  postgres_data_dev:
+
+networks:
+  officefood_network:
+    driver: bridge
+
