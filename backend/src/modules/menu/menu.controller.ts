@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, ParseUUIDPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, ParseUUIDPipe, Query, UnauthorizedException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { MenuService } from './menu.service';
 import { CreateMenuItemDto, UpdateMenuItemDto } from './dto/menu-item.dto';
@@ -11,7 +11,7 @@ export class MenuController {
   constructor(private readonly menuService: MenuService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get menu items for user company' })
+  @ApiOperation({ summary: 'Get menu items for current user company' })
   @ApiQuery({ name: 'category', required: false, description: 'Filter by category' })
   @ApiQuery({ name: 'available', required: false, description: 'Filter by availability' })
   @ApiResponse({ status: 200, description: 'Menu items retrieved successfully' })
@@ -20,6 +20,9 @@ export class MenuController {
     @Query('category') category?: string,
     @Query('available') available?: string,
   ) {
+    if (!user || !user.companyId) {
+      throw new UnauthorizedException('User not authenticated or company not found');
+    }
     return this.menuService.getMenuItems(user.companyId, {
       category,
       available: available === 'true',
@@ -34,6 +37,9 @@ export class MenuController {
     @CurrentUser() user: CurrentUserData,
     @Body() createMenuItemDto: CreateMenuItemDto,
   ) {
+    if (!user || !user.companyId) {
+      throw new UnauthorizedException('User not authenticated or company not found');
+    }
     return this.menuService.createMenuItem(user.companyId, createMenuItemDto);
   }
 
@@ -70,6 +76,9 @@ export class MenuController {
   @ApiOperation({ summary: 'Get all menu categories' })
   @ApiResponse({ status: 200, description: 'Categories retrieved successfully' })
   async getCategories(@CurrentUser() user: CurrentUserData) {
+    if (!user || !user.companyId) {
+      throw new UnauthorizedException('User not authenticated or company not found');
+    }
     return this.menuService.getCategories(user.companyId);
   }
 }

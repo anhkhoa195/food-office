@@ -65,7 +65,7 @@ export class AuthService {
       companyId: user.companyId,
     };
 
-    const accessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '30d' });
 
     // Mark OTP as used
@@ -107,7 +107,7 @@ export class AuthService {
         companyId: user.companyId,
       };
 
-      const newAccessToken = this.jwtService.sign(newPayload);
+      const newAccessToken = this.jwtService.sign(newPayload, { expiresIn: '15m' });
       const newRefreshToken = this.jwtService.sign(newPayload, { expiresIn: '30d' });
 
       return {

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, ParseUUIDPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, ParseUUIDPipe, Query, UnauthorizedException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { OrderSessionsService } from './order-sessions.service';
@@ -16,13 +16,16 @@ export class OrdersController {
 
   // Order Sessions
   @Get('sessions')
-  @ApiOperation({ summary: 'Get order sessions for user company' })
+  @ApiOperation({ summary: 'Get order sessions for current user company' })
   @ApiQuery({ name: 'active', required: false, description: 'Filter by active status' })
   @ApiResponse({ status: 200, description: 'Order sessions retrieved successfully' })
   async getOrderSessions(
     @CurrentUser() user: CurrentUserData,
     @Query('active') active?: string,
   ) {
+    if (!user || !user.companyId) {
+      throw new UnauthorizedException('User not authenticated or company not found');
+    }
     return this.orderSessionsService.getOrderSessions(user.companyId, {
       active: active === 'true',
     });
@@ -35,6 +38,9 @@ export class OrdersController {
     @CurrentUser() user: CurrentUserData,
     @Body() createOrderSessionDto: CreateOrderSessionDto,
   ) {
+    if (!user || !user.companyId || !user.id) {
+      throw new UnauthorizedException('User not authenticated or company not found');
+    }
     return this.orderSessionsService.createOrderSession(user.companyId, user.id, createOrderSessionDto);
   }
 
@@ -67,7 +73,7 @@ export class OrdersController {
 
   // Orders
   @Get()
-  @ApiOperation({ summary: 'Get orders for user' })
+  @ApiOperation({ summary: 'Get orders for current user' })
   @ApiQuery({ name: 'sessionId', required: false, description: 'Filter by session ID' })
   @ApiQuery({ name: 'status', required: false, description: 'Filter by order status' })
   @ApiResponse({ status: 200, description: 'Orders retrieved successfully' })
@@ -76,6 +82,9 @@ export class OrdersController {
     @Query('sessionId') sessionId?: string,
     @Query('status') status?: string,
   ) {
+    if (!user || !user.id) {
+      throw new UnauthorizedException('User not authenticated');
+    }
     return this.ordersService.getOrders(user.id, {
       sessionId,
       status,
@@ -89,6 +98,9 @@ export class OrdersController {
     @CurrentUser() user: CurrentUserData,
     @Body() createOrderDto: CreateOrderDto,
   ) {
+    if (!user || !user.id) {
+      throw new UnauthorizedException('User not authenticated');
+    }
     return this.ordersService.createOrder(user.id, createOrderDto);
   }
 

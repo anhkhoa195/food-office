@@ -34,7 +34,7 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
-  const { user, updateUser } = useAuthStore()
+  const { updateUser } = useAuthStore()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)

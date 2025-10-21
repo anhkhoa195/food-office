@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Res, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Query, Res, HttpStatus, UnauthorizedException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { Response } from 'express';
 import { BillingService } from './billing.service';
@@ -20,6 +20,9 @@ export class BillingController {
     @Query('startDate') startDate: string,
     @Query('endDate') endDate?: string,
   ) {
+    if (!user || !user.companyId) {
+      throw new UnauthorizedException('User not authenticated or company not found');
+    }
     return this.billingService.generateWeeklyReport(user.companyId, startDate, endDate);
   }
 
@@ -33,6 +36,9 @@ export class BillingController {
     @Query('year') year: string,
     @Query('month') month: string,
   ) {
+    if (!user || !user.companyId) {
+      throw new UnauthorizedException('User not authenticated or company not found');
+    }
     return this.billingService.generateMonthlyReport(user.companyId, parseInt(year), parseInt(month));
   }
 
@@ -45,10 +51,13 @@ export class BillingController {
   async exportWeeklyReport(
     @CurrentUser() user: CurrentUserData,
     @Query('startDate') startDate: string,
+    @Res() res: Response,
     @Query('endDate') endDate?: string,
     @Query('format') format: 'pdf' | 'excel' = 'pdf',
-    @Res() res: Response,
   ) {
+    if (!user || !user.companyId) {
+      throw new UnauthorizedException('User not authenticated or company not found');
+    }
     const buffer = await this.billingService.exportWeeklyReport(user.companyId, startDate, endDate, format);
     
     const filename = `weekly-report-${startDate}${endDate ? `-${endDate}` : ''}.${format}`;
@@ -73,9 +82,12 @@ export class BillingController {
     @CurrentUser() user: CurrentUserData,
     @Query('year') year: string,
     @Query('month') month: string,
-    @Query('format') format: 'pdf' | 'excel' = 'pdf',
     @Res() res: Response,
+    @Query('format') format: 'pdf' | 'excel' = 'pdf',
   ) {
+    if (!user || !user.companyId) {
+      throw new UnauthorizedException('User not authenticated or company not found');
+    }
     const buffer = await this.billingService.exportMonthlyReport(user.companyId, parseInt(year), parseInt(month), format);
     
     const filename = `monthly-report-${year}-${month.toString().padStart(2, '0')}.${format}`;
@@ -94,6 +106,9 @@ export class BillingController {
   @ApiOperation({ summary: 'Get billing summary for current month' })
   @ApiResponse({ status: 200, description: 'Billing summary retrieved successfully' })
   async getBillingSummary(@CurrentUser() user: CurrentUserData) {
+    if (!user || !user.companyId) {
+      throw new UnauthorizedException('User not authenticated or company not found');
+    }
     return this.billingService.getBillingSummary(user.companyId);
   }
 }

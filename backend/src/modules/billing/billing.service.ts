@@ -229,7 +229,7 @@ export class BillingService {
       ]);
     });
 
-    return await workbook.xlsx.writeBuffer() as Buffer;
+    return Buffer.from(await workbook.xlsx.writeBuffer());
   }
 
   private generateTextReport(report: any): string {
