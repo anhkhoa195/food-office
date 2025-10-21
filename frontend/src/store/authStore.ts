@@ -18,6 +18,7 @@ interface AuthState {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (phone: string, code: string) => Promise<void>;
+  refreshTokens: () => Promise<void>;
   logout: () => void;
   checkAuth: () => void;
   updateUser: (user: Partial<User>) => void;
@@ -45,6 +46,32 @@ export const useAuthStore = create<AuthState>()(
           });
         } catch (error) {
           set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      refreshTokens: async () => {
+        const { refreshToken } = get();
+        if (!refreshToken) {
+          throw new Error('No refresh token available');
+        }
+
+        set({ isLoading: true });
+        try {
+          const response = await authService.refreshToken(refreshToken);
+          set({
+            accessToken: response.accessToken,
+            refreshToken: response.refreshToken,
+            isLoading: false,
+          });
+        } catch (error) {
+          set({ 
+            user: null,
+            accessToken: null,
+            refreshToken: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
           throw error;
         }
       },

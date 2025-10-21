@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card'
@@ -24,7 +25,15 @@ export default function LoginPage() {
   const [step, setStep] = useState<'phone' | 'otp'>('phone')
   const [phone, setPhone] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const { login } = useAuthStore()
+  const { login, isAuthenticated } = useAuthStore()
+  const navigate = useNavigate()
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true })
+    }
+  }, [isAuthenticated, navigate])
 
   const phoneForm = useForm<PhoneFormData>({
     resolver: zodResolver(phoneSchema),
@@ -53,6 +62,7 @@ export default function LoginPage() {
     try {
       await login(phone, data.code)
       toast.success('Login successful!')
+      // Navigation will be handled by the useEffect hook when isAuthenticated changes
     } catch (error) {
       toast.error('Invalid OTP')
     } finally {
@@ -137,7 +147,7 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        {process.env.NODE_ENV === 'development' && (
+        {import.meta.env.MODE === 'development' && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
             <p className="text-sm text-yellow-800">
               <strong>Development Mode:</strong> Use OTP code <code className="bg-yellow-100 px-1 rounded">123456</code> for testing

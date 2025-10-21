@@ -12,7 +12,7 @@ import ProfilePage from './pages/ProfilePage'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
-  const { user, checkAuth } = useAuthStore()
+  const { checkAuth } = useAuthStore()
 
   useEffect(() => {
     checkAuth()

@@ -47,19 +47,17 @@ export default function Modal({ isOpen, onClose, title, children, className }: M
         )}
       >
         {/* Header */}
-        {(title || onClose) && (
-          <div className="flex items-center justify-between p-6 border-b">
-            {title && (
-              <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-            )}
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-        )}
+        <div className="flex items-center justify-between p-6 border-b">
+          {title && (
+            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+          )}
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
         
         {/* Content */}
         <div className="p-6">

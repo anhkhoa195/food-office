@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, Param, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Put, Body, Param, ParseUUIDPipe, UnauthorizedException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -14,6 +14,9 @@ export class UsersController {
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'User profile retrieved successfully' })
   async getProfile(@CurrentUser() user: CurrentUserData) {
+    if (!user || !user.id) {
+      throw new UnauthorizedException('User not authenticated');
+    }
     return this.usersService.getProfile(user.id);
   }
 
@@ -24,6 +27,9 @@ export class UsersController {
     @CurrentUser() user: CurrentUserData,
     @Body() updateUserDto: UpdateUserDto,
   ) {
+    if (!user || !user.id) {
+      throw new UnauthorizedException('User not authenticated');
+    }
     return this.usersService.updateProfile(user.id, updateUserDto);
   }
 
@@ -31,7 +37,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Get user by ID' })
   @ApiResponse({ status: 200, description: 'User retrieved successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async getUser(@Param('id', ParseUUIDPipe) id: string) {
+  async getUser(id: string) {
     return this.usersService.getUser(id);
   }
 }

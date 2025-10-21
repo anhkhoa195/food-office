@@ -33,12 +33,47 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling
+// Response interceptor for error handling and token refresh
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const token = localStorage.getItem("auth-storage");
+        if (token) {
+          const authData = JSON.parse(token);
+          if (authData.state?.refreshToken) {
+            // Try to refresh the token using a fresh axios instance to avoid circular calls
+            const refreshResponse = await axios.post(
+              `${API_BASE_URL}/auth/refresh`,
+              { refreshToken: authData.state.refreshToken },
+              { headers: { "Content-Type": "application/json" } }
+            );
+
+            const { accessToken, refreshToken } = refreshResponse.data;
+            
+            // Update the stored tokens
+            authData.state.accessToken = accessToken;
+            authData.state.refreshToken = refreshToken;
+            localStorage.setItem("auth-storage", JSON.stringify(authData));
+
+            // Retry the original request with new token
+            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+            return api(originalRequest);
+          }
+        }
+      } catch (refreshError) {
+        // Refresh failed, redirect to login
+        localStorage.removeItem("auth-storage");
+        window.location.href = "/login";
+        return Promise.reject(refreshError);
+      }
+
+      // No refresh token available, redirect to login
       localStorage.removeItem("auth-storage");
       window.location.href = "/login";
     }

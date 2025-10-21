@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card'
-import { Calendar, ShoppingCart, Users, DollarSign, TrendingUp, Clock } from 'lucide-react'
+import { Calendar, ShoppingCart, DollarSign, TrendingUp } from 'lucide-react'
 import { formatCurrency, formatDate } from '../utils/format'
 import { ordersService, billingService } from '../services/api'
 import toast from 'react-hot-toast'
