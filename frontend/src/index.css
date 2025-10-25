@@ -9,6 +9,74 @@
 }
 
 @layer components {
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* Toast custom styles */
+  [role="status"] {
+    position: relative !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    padding-right: 40px !important;
+  }
+  
+  [role="status"]:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  }
+  
+  /* Add close button to toasts */
+  [role="status"]::after {
+    content: '×' !important;
+    position: absolute !important;
+    top: 50% !important;
+    right: 12px !important;
+    transform: translateY(-50%) !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    line-height: 1 !important;
+    width: 20px !important;
+    height: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    z-index: 10 !important;
+  }
+  
+  [role="status"]:hover::after {
+    color: rgba(255, 255, 255, 1) !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-50%) scale(1.1) !important;
+  }
+
+  /* Success toast specific close button styling */
+  [role="status"][data-type="success"]::after {
+    color: rgba(16, 185, 129, 0.7) !important;
+    background: rgba(16, 185, 129, 0.1) !important;
+  }
+  
+  [role="status"][data-type="success"]:hover::after {
+    color: rgba(16, 185, 129, 1) !important;
+    background: rgba(16, 185, 129, 0.2) !important;
+  }
+  
+  /* Alternative selector for different toast implementations */
+  .react-hot-toast > div {
+    position: relative !important;
+    cursor: pointer !important;
+    padding-right: 40px !important;
+  }
+  
   .btn {
     @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-white;
   }

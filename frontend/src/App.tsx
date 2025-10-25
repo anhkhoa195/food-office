@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
 import { useEffect } from 'react'
+import toast from 'react-hot-toast'
 import Layout from './layouts/Layout'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
@@ -17,6 +18,37 @@ function App() {
   useEffect(() => {
     checkAuth()
   }, [checkAuth])
+
+  // Add global click handler for toast dismissal
+  useEffect(() => {
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as Element
+      
+      // Check if click is on a toast element
+      const toastElement = target.closest('[data-hot-toast]') || 
+                          target.closest('[role="status"]') ||
+                          target.closest('.Toaster__toast')
+      
+      if (toastElement) {
+        // Get toast ID if available
+        const toastId = toastElement.getAttribute('data-hot-toast') ||
+                       toastElement.getAttribute('data-toast-id')
+        
+        if (toastId) {
+          toast.dismiss(toastId)
+        } else {
+          // Dismiss the most recent toast if no specific ID
+          toast.dismiss()
+        }
+      }
+    }
+
+    document.addEventListener('click', handleClick)
+    
+    return () => {
+      document.removeEventListener('click', handleClick)
+    }
+  }, [])
 
   return (
     <Routes>

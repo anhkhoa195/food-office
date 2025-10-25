@@ -35,6 +35,19 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, navigate])
 
+  // Auto focus on OTP input when switching to OTP step
+  useEffect(() => {
+    if (step === 'otp') {
+      // Small delay to ensure the input is rendered
+      setTimeout(() => {
+        const otpInput = document.getElementById('otp-input') as HTMLInputElement
+        if (otpInput) {
+          otpInput.focus()
+        }
+      }, 100)
+    }
+  }, [step])
+
   const phoneForm = useForm<PhoneFormData>({
     resolver: zodResolver(phoneSchema),
   })
@@ -49,6 +62,8 @@ export default function LoginPage() {
       await authService.sendOtp(data.phone)
       setPhone(data.phone)
       setStep('otp')
+      // Clear OTP form when switching to OTP step
+      otpForm.reset()
       toast.success('OTP sent successfully!')
     } catch (error) {
       toast.error('Failed to send OTP')
@@ -121,6 +136,7 @@ export default function LoginPage() {
                   label="Verification Code"
                   placeholder="123456"
                   maxLength={6}
+                  id="otp-input"
                   {...otpForm.register('code')}
                   error={otpForm.formState.errors.code?.message}
                 />

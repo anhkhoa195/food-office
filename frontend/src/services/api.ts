@@ -16,15 +16,32 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("auth-storage");
+    console.log("API Request interceptor:", {
+      url: config.url,
+      method: config.method,
+      hasToken: !!token,
+    });
+
     if (token) {
       try {
         const authData = JSON.parse(token);
+        console.log("Auth data structure:", {
+          hasState: !!authData.state,
+          hasAccessToken: !!authData.state?.accessToken,
+          tokenPreview: authData.state?.accessToken?.substring(0, 20) + "...",
+        });
+
         if (authData.state?.accessToken) {
           config.headers.Authorization = `Bearer ${authData.state.accessToken}`;
+          console.log("Authorization header added");
+        } else {
+          console.warn("No access token found in auth data");
         }
       } catch (error) {
         console.error("Error parsing auth token:", error);
       }
+    } else {
+      console.warn("No auth token found in localStorage");
     }
     return config;
   },
@@ -55,7 +72,7 @@ api.interceptors.response.use(
             );
 
             const { accessToken, refreshToken } = refreshResponse.data;
-            
+
             // Update the stored tokens
             authData.state.accessToken = accessToken;
             authData.state.refreshToken = refreshToken;
